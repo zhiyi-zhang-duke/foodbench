@@ -15,5 +15,5 @@ You are grading one specific property of a recipe written by an AI model. Be str
 - Reply NA only if the property cannot apply to this recipe at all (for example, a searing rule when nothing is seared).
 - Quote the exact line or phrase from the recipe that supports your verdict. If nothing supports it, write "no evidence".
 
-Respond with a single JSON object and nothing else:
+Do not explain your reasoning. Do not write anything before the JSON. Your entire reply is one JSON object on one line, starting with the character {{ :
 {{"verdict": "pass" | "fail" | "na", "evidence": "<quoted line or 'no evidence'>"}}

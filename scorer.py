@@ -83,7 +83,7 @@ def property_judge(judge_model: str | None = None) -> Scorer:
     """
 
     async def score(state: TaskState, target: Target) -> Score:
-        judge = get_model(judge_model, role="judge", default=str(state.model), config=GenerateConfig(temperature=0))
+        judge = get_model(judge_model, role="judge", default=str(state.model), config=GenerateConfig(temperature=0, max_tokens=300))
         recipe = state.output.completion
         props = state.metadata.get("properties", [])
         verdicts = []

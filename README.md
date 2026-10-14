@@ -46,3 +46,20 @@ python analysis/summarize.py logs/
 - a failed critical property zeroes its dimension
 - dimensions with no applicable property report N/A, not 0
 - the judge should be a different, stronger model than the one under test for real runs; the pilot uses the same local model for both to shake out the harness
+
+## Open-model lineup (local, GPU 0 only)
+
+| Model | Ollama tag | Size | Role |
+|---|---|---|---|
+| Gemma 4 31B | `gemma4:31b` | 20 GB | pilot generator + judge |
+| Qwen3.8 27B | `qwen3.8:27b` | 18 GB | generator |
+| gpt-oss 20B | `gpt-oss:20b` | 13 GB | generator |
+
+Run one model at a time; Ollama unloads the previous one. Never point Ollama at GPU 1 (the display card); it blue-screens under sustained inference.
+
+```powershell
+$env:OLLAMA_BASE_URL="http://127.0.0.1:11600/v1"
+.\.venv\Scripts\inspect.exe eval tasks/pilot.py --model ollama/qwen3.8:27b --model-role judge=ollama/gemma4:31b --max-connections 1 --log-dir logs/qwen-pilot
+```
+
+Note: using Gemma as judge for a Qwen run means Ollama swaps models between every generate and judge call. For a 12-case pilot that is acceptable; for the full run, generate all recipes first with one model, then judge in a second pass.
