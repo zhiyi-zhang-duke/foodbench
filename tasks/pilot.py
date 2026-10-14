@@ -6,6 +6,7 @@ Run (from the repo root, venv active):
       --model-role judge=ollama/gemma4:31b --epochs 1 --log-dir logs/
 
 Filter to one use case:  -T use_case=6
+Reasoning models need headroom for the scratchpad: -T max_tokens=8000
 Smoke test with no model: --model mockllm/model
 """
 
@@ -34,7 +35,7 @@ def record_to_sample(rec: dict) -> Sample:
 
 
 @task
-def pilot(use_case: int | None = None, judge_model: str | None = None) -> Task:
+def pilot(use_case: int | None = None, judge_model: str | None = None, max_tokens: int = 2000) -> Task:
     ds = json_dataset(str(ROOT / "cases" / "pilot.jsonl"), record_to_sample)
     if use_case is not None:
         ds = ds.filter(lambda s: s.metadata["use_case"] == use_case)
@@ -42,5 +43,5 @@ def pilot(use_case: int | None = None, judge_model: str | None = None) -> Task:
         dataset=ds,
         solver=[system_message(SYSTEM), generate()],
         scorer=property_judge(judge_model),
-        config=GenerateConfig(temperature=0.0, max_tokens=2000),
+        config=GenerateConfig(temperature=0.0, max_tokens=max_tokens),
     )
