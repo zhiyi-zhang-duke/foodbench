@@ -35,7 +35,7 @@ def record_to_sample(rec: dict) -> Sample:
 
 
 @task
-def pilot(use_case: int | None = None, judge_model: str | None = None, max_tokens: int = 2000) -> Task:
+def pilot(use_case: int | None = None, judge_model: str | None = None, max_tokens: int = 6000) -> Task:
     ds = json_dataset(str(ROOT / "cases" / "pilot.jsonl"), record_to_sample)
     if use_case is not None:
         ds = ds.filter(lambda s: s.metadata["use_case"] == use_case)
