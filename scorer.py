@@ -84,7 +84,9 @@ def property_judge(judge_model: str | None = None) -> Scorer:
 
     async def score(state: TaskState, target: Target) -> Score:
         judge = get_model(judge_model, role="judge", default=str(state.model), config=GenerateConfig(temperature=0, max_tokens=300))
-        recipe = state.output.completion
+        # Reasoning models (deepseek-r1, gpt-oss) may return their scratchpad inline.
+        # Judge only the answer the user would see.
+        recipe = re.sub(r"<think>.*?</think>\s*", "", state.output.completion, flags=re.DOTALL).strip()
         props = state.metadata.get("properties", [])
         verdicts = []
         for p in props:
