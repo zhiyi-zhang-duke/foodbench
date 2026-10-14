@@ -53,7 +53,8 @@ python analysis/summarize.py logs/
 |---|---|---|---|
 | Gemma 4 31B | `gemma4:31b` | 20 GB | pilot generator + judge |
 | Qwen3.8 27B | `qwen3.8:27b` | 18 GB | generator |
-| gpt-oss 20B | `gpt-oss:20b` | 13 GB | generator |
+| gpt-oss 20B | `gpt-oss:20b` | 14 GB | generator |
+| DeepSeek-R1 32B (Qwen 2.5 distill) | `deepseek-r1:32b` | 20 GB | generator; reasoning-trained contrast |
 
 Run one model at a time; Ollama unloads the previous one. Never point Ollama at GPU 1 (the display card); it blue-screens under sustained inference.
 
