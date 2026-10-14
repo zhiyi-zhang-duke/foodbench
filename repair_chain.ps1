@@ -4,6 +4,7 @@
 #   1. Re-judge the existing Qwen and DeepSeek recipes (no regeneration; scored copies are new files).
 #   2. Rerun Gemma end to end with the same 6000-token generation budget as the others.
 # Same safety as run_chain.ps1: GPU-0-only preflight plus the display-GPU watchdog.
+param([switch]$RescoreOnly)
 Set-Location $PSScriptRoot
 $env:OLLAMA_HOST = "127.0.0.1:11600"
 $env:OLLAMA_BASE_URL = "http://127.0.0.1:11600/v1"
@@ -20,13 +21,15 @@ $wd = Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','By
 
 foreach ($d in @("qwen", "deepseek")) {
   if ($wd.HasExited) { "=== WATCHDOG FIRED $(Get-Date)"; exit 1 }
-  $src = Get-ChildItem "logs/$d-pilot/*.eval" | Where-Object { $_.Name -notmatch 'scored' } | Sort-Object LastWriteTime | Select-Object -Last 1
+  $src = Get-ChildItem "logs/$d-pilot/*.eval" | Where-Object { $_.Name -notmatch 'rescored' } | Sort-Object LastWriteTime | Select-Object -Last 1
+  $dst = Join-Path $src.DirectoryName ($src.BaseName + "-rescored.eval")
+  Copy-Item $src.FullName $dst -Force   # originals stay untouched; score the copy in place
   "=== START rescore $d $(Get-Date) ($($src.Name))"
-  & $inspect score $src.FullName --model-role judge=ollama/gemma4:31b --display plain 2>&1 | Tee-Object -FilePath "logs/$d-rescore.out.txt"
+  & $inspect score $dst --model-role judge=ollama/gemma4:31b --action overwrite --overwrite --display plain 2>&1 | Tee-Object -FilePath "logs/$d-rescore.out.txt"
   "=== END rescore $d $(Get-Date) exit=$LASTEXITCODE"
 }
 
-if (-not $wd.HasExited) {
+if (-not $RescoreOnly -and -not $wd.HasExited) {
   "=== START gemma rerun $(Get-Date)"
   Remove-Item -Recurse -Force logs/gemma-pilot -ErrorAction SilentlyContinue
   & $inspect eval tasks/pilot.py --model ollama/gemma4:31b --model-role judge=ollama/gemma4:31b `
